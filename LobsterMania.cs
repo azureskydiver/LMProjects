@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Lobstermania
 {
@@ -141,7 +144,6 @@ namespace Lobstermania
             UpdateGameboard();
             if (printGameboard)
                 PrintGameboard();
-            UpdatePaylines();
 
             if (printPaylines)
             {
@@ -149,16 +151,21 @@ namespace Lobstermania
                 Console.WriteLine("-----------------");
             }
 
-            for (int i = 0; i < activePaylines; i++)
-            {                
-                int linePayout = GetLinePayout(payLines[i]); // will include any bonus win
-                if(linePayout > 0)
+            int payLineCount = 0;
+            foreach(var payLine in GetPayLines())
+            {
+                if (payLineCount++ >= activePaylines)
+                    break;
+
+                int linePayout = GetLinePayout(payLine); // will include any bonus win
+                if (linePayout > 0)
                 {
                     stats.igWin += linePayout;
                     stats.hitCount++;
                     stats.paybackCredits += linePayout;
+
                     if (printPaylines)
-                        PrintPayline(i+1, payLines[i], linePayout);
+                        PrintPayline(payLineCount, payLine, linePayout);
                 }
             }
 
@@ -328,29 +335,43 @@ namespace Lobstermania
             Console.WriteLine();
         }
 
-
-        private void UpdatePaylines()
+        static readonly int [][] PayLineRows =
         {
-            payLines[ 0] = new [] { gameBoard[1, 0], gameBoard[1, 1], gameBoard[1, 2], gameBoard[1, 3], gameBoard[1, 4] };
-            payLines[ 1] = new [] { gameBoard[0, 0], gameBoard[0, 1], gameBoard[0, 2], gameBoard[0, 3], gameBoard[0, 4] };
-            payLines[ 2] = new [] { gameBoard[2, 0], gameBoard[2, 1], gameBoard[2, 2], gameBoard[2, 3], gameBoard[2, 4] };
-            payLines[ 3] = new [] { gameBoard[0, 0], gameBoard[1, 1], gameBoard[2, 2], gameBoard[1, 3], gameBoard[0, 4] };
-            payLines[ 4] = new [] { gameBoard[2, 0], gameBoard[1, 1], gameBoard[0, 2], gameBoard[1, 3], gameBoard[2, 4] };
+            new [] { 1, 1, 1, 1, 1 },
+            new [] { 0, 0, 0, 0, 0 },
+            new [] { 2, 2, 2, 2, 2 },
+            new [] { 0, 1, 2, 1, 0 },
+            new [] { 2, 1, 0, 1, 2 },
 
-            payLines[ 5] = new [] { gameBoard[2, 0], gameBoard[2, 1], gameBoard[1, 2], gameBoard[0, 3], gameBoard[0, 4] };
-            payLines[ 6] = new [] { gameBoard[0, 0], gameBoard[0, 1], gameBoard[1, 2], gameBoard[2, 3], gameBoard[2, 4] };
+            new [] { 2, 2, 1, 0, 0 },
+            new [] { 0, 0, 1, 2, 2 },
 
-            payLines[ 7] = new [] { gameBoard[1, 0], gameBoard[2, 1], gameBoard[1, 2], gameBoard[0, 3], gameBoard[1, 4] };
-            payLines[ 8] = new [] { gameBoard[1, 0], gameBoard[0, 1], gameBoard[1, 2], gameBoard[2, 3], gameBoard[1, 4] };
+            new [] { 1, 2, 1, 0, 1 },
+            new [] { 1, 0, 1, 2, 1 },
 
-            payLines[ 9] = new [] { gameBoard[2, 0], gameBoard[1, 1], gameBoard[1, 2], gameBoard[1, 3], gameBoard[0, 4] };
-            payLines[10] = new [] { gameBoard[0, 0], gameBoard[1, 1], gameBoard[1, 2], gameBoard[1, 3], gameBoard[2, 4] };
+            new [] { 2, 1, 1, 1, 0 },
+            new [] { 0, 1, 1, 1, 2 },
 
-            payLines[11] = new [] { gameBoard[1, 0], gameBoard[2, 1], gameBoard[2, 2], gameBoard[1, 3], gameBoard[0, 4] };
-            payLines[12] = new [] { gameBoard[1, 0], gameBoard[0, 1], gameBoard[0, 2], gameBoard[1, 3], gameBoard[2, 4] };
+            new [] { 1, 2, 2, 1, 0 },
+            new [] { 1, 0, 0, 1, 2 },
 
-            payLines[13] = new [] { gameBoard[1, 0], gameBoard[1, 1], gameBoard[2, 2], gameBoard[1, 3], gameBoard[0, 4] };
-            payLines[14] = new [] { gameBoard[1, 0], gameBoard[1, 1], gameBoard[0, 2], gameBoard[1, 3], gameBoard[2, 4] };
+            new [] { 1, 1, 2, 1, 0 },
+            new [] { 1, 1, 0, 1, 2 },
+        };
+
+        IEnumerable<Symbol[]> GetPayLines()
+        {
+            foreach(var row in PayLineRows)
+            {
+                yield return new[]
+                {
+                    gameBoard[row[0], 0],
+                    gameBoard[row[1], 1],
+                    gameBoard[row[2], 2],
+                    gameBoard[row[3], 3],
+                    gameBoard[row[4], 4],
+                };
+            }
         }
 
         private void PrintPayline(int payLineNum, Symbol[] line, int payout)
