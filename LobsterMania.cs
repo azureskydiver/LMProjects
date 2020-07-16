@@ -29,7 +29,7 @@ namespace Lobstermania
         //
         // Reels 1, 2, and 3 have all 11 symbols, while Reels 4 and 5 do not have the Bonus symbol
         //
-        readonly Symbol[] Reel123Symbols =
+        static readonly Symbol[] Reel123Symbols =
         {
             Symbol.Wild,
             Symbol.Lobstermania,
@@ -44,7 +44,7 @@ namespace Lobstermania
             Symbol.Scatter,
         };
 
-        readonly Symbol[] Reel45Symbols =
+        static readonly Symbol[] Reel45Symbols =
         {
             Symbol.Wild,
             Symbol.Lobstermania,
@@ -58,7 +58,7 @@ namespace Lobstermania
             Symbol.Scatter,
         };
 
-        readonly int[][] SymbolCounts = new int[][]
+        static readonly int[][] SymbolCounts = new int[][]
         {
             new int[] { 2, 4, 4, 6, 5, 6, 6, 5, 5, 2, 2 },
             new int[] { 2, 4, 4, 4, 4, 4, 6, 6, 5, 5, 2 },
@@ -67,7 +67,7 @@ namespace Lobstermania
             new int[] { 2, 4, 5, 4, 7, 7, 6, 6, 7, 2 }
         };
 
-        readonly int[,] Payouts =
+        static readonly int[,] Payouts =
         {
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 },

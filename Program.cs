@@ -1,4 +1,4 @@
-﻿#define USE_PARALLEL
+﻿// #define USE_PARALLEL
 using System;
 using System.Diagnostics;
 using System.Text;
