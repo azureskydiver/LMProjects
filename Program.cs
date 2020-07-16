@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 
@@ -65,8 +66,14 @@ namespace Lobstermania
             return sb.ToString();
         }
 
-        public static void Main()
+        public static void Main(string [] args)
         {
+            if (args.Length == 1 && string.Compare(args[0], "-perf", true) == 0)
+            {
+                BulkGameSpins(10000000, 15);
+                return;
+            }
+
             var menu = BuildMenuString();
             int num;
             do
@@ -101,7 +108,7 @@ namespace Lobstermania
                 activePaylines = numPayLines
             };
 
-            DateTime start_t = DateTime.Now;
+            var stopwatch = new Stopwatch();
 
             Console.WriteLine("Progress Bar ({0:N0} spins)\n",numSpins);
             Console.WriteLine("0%       100%");
@@ -112,7 +119,11 @@ namespace Lobstermania
             {
                 Console.WriteLine("**********"); // 10 markers
                 for (long i = 1; i <= numSpins; i++)
+                {
+                    stopwatch.Start();
                     game.Spin();
+                    stopwatch.Stop();
+                }
             }
             else
             {
@@ -121,7 +132,9 @@ namespace Lobstermania
 
                 for (long i = 1; i <= numSpins; i++)
                 {
+                    stopwatch.Start();
                     game.Spin();
+                    stopwatch.Stop();
                     if ((i % markerEvery == 0))
                     {
                         Console.Write("*");
@@ -136,9 +149,7 @@ namespace Lobstermania
             Console.WriteLine();
             game.stats.DisplaySessionStats(numPayLines);
 
-            DateTime end_t = DateTime.Now;
-            TimeSpan runtime = end_t - start_t;
-            Console.WriteLine("\nRun completed in {0:t}\n", runtime);
+            Console.WriteLine("\nRun completed in {0:t}\n", stopwatch.Elapsed);
 
         } // End method BulkGameSpins
 
