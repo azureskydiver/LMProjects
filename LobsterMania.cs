@@ -2,15 +2,60 @@
 
 namespace Lobstermania
 {
+    enum Symbol
+    {
+        Wild,
+        Lobstermania,
+        Buoy,
+        Boat,
+        Lighthouse,
+        Tuna,
+        Clam,
+        Seagull,
+        Starfish,
+        Bonus,
+        Scatter
+    }
+
     class LobsterMania
     {
-        const int NUM_REELS = 5;
-        const int GAMEBOARD_ROWS = 3;
-        const int MAX_PAYLINES = 15; 
+        const int ReelCount = 5;
+        const int GameBoardRowCount = 3;
+        const int PayLineCountMax = 15;
 
-        readonly string[] SYMBOLS123 = { "WS", "LM", "BU", "BO", "LH", "TU", "CL", "SG", "SF", "LO", "LT" }; // All 11 game symbols
-        readonly string[] SYMBOLS45 =  { "WS", "LM", "BU", "BO", "LH", "TU", "CL", "SG", "SF", "LT" }; // Reels 4 and 5 -- missing LO (bonus) symbol
-        readonly int[][] SYMBOL_COUNTS = new int[][]
+        //
+        // Reels 1, 2, and 3 have all 11 symbols, while Reels 4 and 5 do not have the Bonus symbol
+        //
+        readonly Symbol[] Reel123Symbols =
+        {
+            Symbol.Wild,
+            Symbol.Lobstermania,
+            Symbol.Buoy,
+            Symbol.Boat,
+            Symbol.Lighthouse,
+            Symbol.Tuna,
+            Symbol.Clam,
+            Symbol.Seagull,
+            Symbol.Starfish,
+            Symbol.Bonus,
+            Symbol.Scatter,
+        };
+
+        readonly Symbol[] Reel45Symbols =
+        {
+            Symbol.Wild,
+            Symbol.Lobstermania,
+            Symbol.Buoy,
+            Symbol.Boat,
+            Symbol.Lighthouse,
+            Symbol.Tuna,
+            Symbol.Clam,
+            Symbol.Seagull,
+            Symbol.Starfish,
+            Symbol.Scatter,
+        };
+
+        readonly int[][] SymbolCounts = new int[][]
         {
             new int[] { 2, 4, 4, 6, 5, 6, 6, 5, 5, 2, 2 },
             new int[] { 2, 4, 4, 4, 4, 4, 6, 6, 5, 5, 2 },
@@ -19,7 +64,7 @@ namespace Lobstermania
             new int[] { 2, 4, 5, 4, 7, 7, 6, 6, 7, 2 }
         };
 
-        readonly int[,] PAYOUTS =
+        readonly int[,] Payouts =
         {
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -28,71 +73,65 @@ namespace Lobstermania
             { 10000, 1000, 500, 500, 500, 250, 200, 200, 150, 0, 200 }
         };
 
-        public static readonly Random rand = new Random(); // Random Number Generator (RNG) object
+        public static readonly Random rand = new Random();
 
-        readonly string[][] reels = new string[][] // 5 reels in this game
+        readonly Symbol[][] reels = new Symbol[][]
         {
-            new string[47], // 47 slots in this reel
-            new string[46],
-            new string[48],
-            new string[50],
-            new string[50]
+            new Symbol[47],
+            new Symbol[46],
+            new Symbol[48],
+            new Symbol[50],
+            new Symbol[50]
         };
 
-        readonly string[,] gameBoard = new string[GAMEBOARD_ROWS, NUM_REELS];
-        readonly string[][] payLines = new string[MAX_PAYLINES][];
-        public int activePaylines = MAX_PAYLINES; //number of active paylines, default of 15
+        readonly Symbol[,] gameBoard = new Symbol[GameBoardRowCount, ReelCount];
+        readonly Symbol[][] payLines = new Symbol[PayLineCountMax][];
+        public int activePaylines = PayLineCountMax;
 
         // Print flags
         public bool printReels = false;
         public bool printGameboard = false;
         public bool printPaylines = false;
 
-        public Stats stats = new Stats(); // Game statistics object
+        public Stats stats = new Stats();
 
         public LobsterMania()
         {
-            // Build the reels
             BuildReels();
 
-            // Randomize the reels
-            for(int i=0;i<NUM_REELS;i++) // randomize each of the 5 reels
+            for(int i = 0; i < ReelCount; i++)
                 rand.Shuffle(reels[i]);
-
-        } // End constructor
+        }
 
         private void BuildReels()
         {
-            for (int i = 0; i < 3; i++) // 1st 3 reels
+            for (int i = 0; i < 3; i++)
             {
-                int idx = 0; // reel slot index
-
-                for (int j = 0; j < SYMBOLS123.Length; j++)
-                    for (int k = 0; k < SYMBOL_COUNTS[i][j]; k++) // number of times to repeat each symbol
-                        reels[i][idx++] = SYMBOLS123[j]; // assign symbol to slot
+                int idx = 0;
+                for (int j = 0; j < Reel123Symbols.Length; j++)
+                    for (int k = 0; k < SymbolCounts[i][j]; k++)
+                        reels[i][idx++] = Reel123Symbols[j];
             }
 
-            for (int i = 3; i < 5; i++) // last 2 reels (they don't have the LO (bonus) symbol)
+            for (int i = 3; i < 5; i++)
             {
-                int idx = 0; // reel slot index
-
-                for (int j = 0; j < SYMBOLS45.Length; j++)
-                    for (int k = 0; k < SYMBOL_COUNTS[i][j]; k++) // number of times to repeat each symbol
-                        reels[i][idx++] = SYMBOLS45[j]; // assign symbol to slot
+                int idx = 0;
+                for (int j = 0; j < Reel45Symbols.Length; j++)
+                    for (int k = 0; k < SymbolCounts[i][j]; k++)
+                        reels[i][idx++] = Reel45Symbols[j];
             }
-
-        } // End method BuildReels
+        }
 
         private void PrintReels()
         {
-            for(int num=0; num<NUM_REELS; num++) // all 5 reels
+            for(int num=0; num < ReelCount; num++)
             {
                 Console.Write("\nReel[{0}]: [  ", num);
                 for (int s = 0; s < reels[num].Length - 1; s++)
-                    Console.Write("{0}, ", reels[num][s]);
-                Console.WriteLine("{0} ]", reels[num][reels[num].Length-2]);
+                    Console.Write("{0,12}, ", reels[num][s]);
+                Console.WriteLine("{0,12} ]", reels[num][reels[num].Length-2]);
             }
-        } // End method PrintReels
+        }
 
         public void Spin()
         {
@@ -110,7 +149,7 @@ namespace Lobstermania
                 Console.WriteLine("-----------------");
             }
 
-            for (int i = 0; i < activePaylines; i++) // for each payline
+            for (int i = 0; i < activePaylines; i++)
             {                
                 int linePayout = GetLinePayout(payLines[i]); // will include any bonus win
                 if(linePayout > 0)
@@ -121,10 +160,9 @@ namespace Lobstermania
                     if (printPaylines)
                         PrintPayline(i+1, payLines[i], linePayout);
                 }
-            } // end for (each payLine)
+            }
 
             int scatterWin = GetScatterWin();
-
             if (scatterWin > 0)
             {
                 // stats.paybackCredits are updated in GetScatterWin()
@@ -132,21 +170,20 @@ namespace Lobstermania
                 stats.igScatterWin = scatterWin; // only 1 scatter win allowed per game
                 stats.igWin += scatterWin; // add to total game win
             }
+        }
 
-        } // End method Spin
-
-        private int GetLinePayout(string[] line)
+        private int GetLinePayout(Symbol[] line)
         {
             int count = 1; // count of consecutive matching symbols, left to right 
-            string sym = line[0];
+            var sym = line[0];
             int bonusWin = 0;
 
             switch (sym)
             {
-                case "LO": // Bonus
+                case Symbol.Bonus:
                     for (int i = 1; i < 3; i++)
                     {
-                        if (line[i] == "LO")
+                        if (line[i] == Symbol.Bonus)
                             count++;
                         else
                             break;
@@ -162,21 +199,23 @@ namespace Lobstermania
                     else
                         bonusWin = 0;
 
-                    break; // case "LO"
+                    break;
 
-                case "LT": // Scatter
+                case Symbol.Scatter:
                     count = 1; // Scatter handled at gameboard level
-                    break; // case "LT"
+                    break;
 
-                case "WS": // Wild
-                    string altSym = "WS";
+                case Symbol.Wild:
+                    var altSym = Symbol.Wild;
 
-                    for (int i = 1; i < NUM_REELS; i++)
+                    for (int i = 1; i < ReelCount; i++)
                         if ((line[i] == sym) || (line[i] == altSym))
                             count++;
                         else
                         {
-                            if (line[i] != "LO" && line[i] != "LT" && altSym == "WS")
+                            if (line[i] != Symbol.Bonus &&
+                                line[i] != Symbol.Scatter &&
+                                altSym == Symbol.Wild)
                             {
                                 altSym = line[i];
                                 count++;
@@ -195,106 +234,74 @@ namespace Lobstermania
                     // Take greatest win possible
 
                     // Leading 4 wilds
-                    if ((line[1] == "WS") && (line[2] == "WS") && (line[3] == "WS"))
+                    if ((line[1] == Symbol.Wild) &&
+                        (line[2] == Symbol.Wild) &&
+                        (line[3] == Symbol.Wild))
                     {
-                        if (line[4] == "LM")
+                        if (line[4] == Symbol.Lobstermania)
                         {
-                            sym = "LM";
+                            sym = Symbol.Lobstermania;
                             count = 5;
                         }
                         else
-                        if (line[4] != "WS")
+                        if (line[4] != Symbol.Wild)
                         {
-                            sym = "WS";
+                            sym = Symbol.Wild;
                             count = 4;
                         }
                     }
 
                     // Leading 3 wilds
-                    if ((line[1] == "WS") && (line[2] == "WS") && (line[3] == "LM") && (line[4] == "WS") && (line[4] != "LM"))
+                    if ((line[1] == Symbol.Wild) &&
+                        (line[2] == Symbol.Wild) &&
+                        (line[3] == Symbol.Lobstermania) &&
+                        (line[4] == Symbol.Wild) &&
+                        (line[4] != Symbol.Lobstermania))
                     {
-                        sym = "LM";
+                        sym = Symbol.Lobstermania;
                         count = 4;
                         break;
                     }
-                    if ((line[1] == "WS") && (line[2] == "WS") && (line[3] != "LM") && (line[3] != "WS") && (line[4] != line[3]))
+                    if ((line[1] == Symbol.Wild) &&
+                        (line[2] == Symbol.Wild) &&
+                        (line[3] != Symbol.Lobstermania) &&
+                        (line[3] != Symbol.Wild) &&
+                        (line[4] != line[3]))
                     {
-                        sym = "WS";
+                        sym = Symbol.Wild;
                         count = 3;
                     }
-                    break; // case "WS"
+                    break;
 
                 default: // Handle all other 1st symbols not handled in cases above
                     sym = line[0];
-                    for (int i = 1; i < NUM_REELS; i++)
-                        if ((line[i] == sym) || (line[i] == "WS"))
+                    for (int i = 1; i < ReelCount; i++)
+                    {
+                        if ((line[i] == sym) || (line[i] == Symbol.Wild))
                             count++;
                         else
                             break;
-                    break; // case default
-            } // end switch
+                    }
+                break;
+            }
 
-            if ((sym == "WS") && (count == 5))
+            if ((sym == Symbol.Wild) && (count == 5))
                 stats.numJackpots++;
 
             // count variable now set for number of consecutive line[0] symbols (1 based)
             count--; // adjust for zero based indexing
 
-            if (bonusWin > 0) return bonusWin;
+            if (bonusWin > 0)
+                return bonusWin;
 
-            int lineWin = PAYOUTS[count, GetSymIndex(sym)];
-
+            int lineWin = Payouts[count, (int)sym];
             return lineWin;
-
-        } // End method GetLinePayout
-
-        private int GetSymIndex(string sym)
-        {
-            int symidx = 0;
-            switch (sym)
-            {
-                case "WS":
-                    symidx = 0;
-                    break;
-                case "LM":
-                    symidx = 1;
-                    break;
-                case "BU":
-                    symidx = 2;
-                    break;
-                case "BO":
-                    symidx = 3;
-                    break;
-                case "LH":
-                    symidx = 4;
-                    break;
-                case "TU":
-                    symidx = 5;
-                    break;
-                case "CL":
-                    symidx = 6;
-                    break;
-                case "SG":
-                    symidx = 7;
-                    break;
-                case "SF":
-                    symidx = 8;
-                    break;
-                case "LO":
-                    symidx = 9;
-                    break;
-                case "LT":
-                    symidx = 10;
-                    break;
-            } // end switch
-
-            return symidx;
-        } // End method GetSymIndex
+        }
 
         private void UpdateGameboard()
         {
             int[] lineIdxs = new int[5]; // Random starting slots for each reel
-            for (int i = 0; i < NUM_REELS; i++)
+            for (int i = 0; i < ReelCount; i++)
                 lineIdxs[i] = rand.Next(reels[i].Length);
 
             int i1, i2, i3;
@@ -332,55 +339,47 @@ namespace Lobstermania
         {
             Console.WriteLine("GAMEBOARD:");
             Console.WriteLine("------------------");
-            for (int r = 0; r < GAMEBOARD_ROWS; r++)
+            for (int r = 0; r < GameBoardRowCount; r++)
             {
-                for (int c = 0; c < NUM_REELS; c++)
-                    Console.Write("{0}  ", gameBoard[r, c]);
+                for (int c = 0; c < ReelCount; c++)
+                    Console.Write("{0,12}  ", gameBoard[r, c]);
                 Console.WriteLine();
             }
             Console.WriteLine();
-
-        } // End method PrintGameboard
+        }
 
 
         private void UpdatePaylines()
         {
-            payLines[0] = new string[] { gameBoard[1, 0], gameBoard[1, 1], gameBoard[1, 2], gameBoard[1, 3], gameBoard[1, 4] };
-            payLines[1] = new string[] { gameBoard[0, 0], gameBoard[0, 1], gameBoard[0, 2], gameBoard[0, 3], gameBoard[0, 4] };
-            payLines[2] = new string[] { gameBoard[2, 0], gameBoard[2, 1], gameBoard[2, 2], gameBoard[2, 3], gameBoard[2, 4] };
-            payLines[3] = new string[] { gameBoard[0, 0], gameBoard[1, 1], gameBoard[2, 2], gameBoard[1, 3], gameBoard[0, 4] };
-            payLines[4] = new string[] { gameBoard[2, 0], gameBoard[1, 1], gameBoard[0, 2], gameBoard[1, 3], gameBoard[2, 4] };
+            payLines[ 0] = new [] { gameBoard[1, 0], gameBoard[1, 1], gameBoard[1, 2], gameBoard[1, 3], gameBoard[1, 4] };
+            payLines[ 1] = new [] { gameBoard[0, 0], gameBoard[0, 1], gameBoard[0, 2], gameBoard[0, 3], gameBoard[0, 4] };
+            payLines[ 2] = new [] { gameBoard[2, 0], gameBoard[2, 1], gameBoard[2, 2], gameBoard[2, 3], gameBoard[2, 4] };
+            payLines[ 3] = new [] { gameBoard[0, 0], gameBoard[1, 1], gameBoard[2, 2], gameBoard[1, 3], gameBoard[0, 4] };
+            payLines[ 4] = new [] { gameBoard[2, 0], gameBoard[1, 1], gameBoard[0, 2], gameBoard[1, 3], gameBoard[2, 4] };
 
-            payLines[5] = new string[] { gameBoard[2, 0], gameBoard[2, 1], gameBoard[1, 2], gameBoard[0, 3], gameBoard[0, 4] };
-            payLines[6] = new string[] { gameBoard[0, 0], gameBoard[0, 1], gameBoard[1, 2], gameBoard[2, 3], gameBoard[2, 4] };
+            payLines[ 5] = new [] { gameBoard[2, 0], gameBoard[2, 1], gameBoard[1, 2], gameBoard[0, 3], gameBoard[0, 4] };
+            payLines[ 6] = new [] { gameBoard[0, 0], gameBoard[0, 1], gameBoard[1, 2], gameBoard[2, 3], gameBoard[2, 4] };
 
-            payLines[7] = new string[] { gameBoard[1, 0], gameBoard[2, 1], gameBoard[1, 2], gameBoard[0, 3], gameBoard[1, 4] };
-            payLines[8] = new string[] { gameBoard[1, 0], gameBoard[0, 1], gameBoard[1, 2], gameBoard[2, 3], gameBoard[1, 4] };
+            payLines[ 7] = new [] { gameBoard[1, 0], gameBoard[2, 1], gameBoard[1, 2], gameBoard[0, 3], gameBoard[1, 4] };
+            payLines[ 8] = new [] { gameBoard[1, 0], gameBoard[0, 1], gameBoard[1, 2], gameBoard[2, 3], gameBoard[1, 4] };
 
-            payLines[9] = new string[] { gameBoard[2, 0], gameBoard[1, 1], gameBoard[1, 2], gameBoard[1, 3], gameBoard[0, 4] };
-            payLines[10] = new string[] { gameBoard[0, 0], gameBoard[1, 1], gameBoard[1, 2], gameBoard[1, 3], gameBoard[2, 4] };
+            payLines[ 9] = new [] { gameBoard[2, 0], gameBoard[1, 1], gameBoard[1, 2], gameBoard[1, 3], gameBoard[0, 4] };
+            payLines[10] = new [] { gameBoard[0, 0], gameBoard[1, 1], gameBoard[1, 2], gameBoard[1, 3], gameBoard[2, 4] };
 
-            payLines[11] = new string[] { gameBoard[1, 0], gameBoard[2, 1], gameBoard[2, 2], gameBoard[1, 3], gameBoard[0, 4] };
-            payLines[12] = new string[] { gameBoard[1, 0], gameBoard[0, 1], gameBoard[0, 2], gameBoard[1, 3], gameBoard[2, 4] };
+            payLines[11] = new [] { gameBoard[1, 0], gameBoard[2, 1], gameBoard[2, 2], gameBoard[1, 3], gameBoard[0, 4] };
+            payLines[12] = new [] { gameBoard[1, 0], gameBoard[0, 1], gameBoard[0, 2], gameBoard[1, 3], gameBoard[2, 4] };
 
-            payLines[13] = new string[] { gameBoard[1, 0], gameBoard[1, 1], gameBoard[2, 2], gameBoard[1, 3], gameBoard[0, 4] };
-            payLines[14] = new string[] { gameBoard[1, 0], gameBoard[1, 1], gameBoard[0, 2], gameBoard[1, 3], gameBoard[2, 4] };
+            payLines[13] = new [] { gameBoard[1, 0], gameBoard[1, 1], gameBoard[2, 2], gameBoard[1, 3], gameBoard[0, 4] };
+            payLines[14] = new [] { gameBoard[1, 0], gameBoard[1, 1], gameBoard[0, 2], gameBoard[1, 3], gameBoard[2, 4] };
+        }
 
-        } // End method UpdatePaylines
-
-        private void PrintPayline(int payLineNum, string[] line, int payout)
+        private void PrintPayline(int payLineNum, Symbol[] line, int payout)
         { 
-            if (payLineNum > 9) // for formatting purposes
-                Console.Write("Payline[{0}]: [  ", payLineNum);
-            else
-                Console.Write("Payline[{0}]:  [  ", payLineNum);
-
-            foreach (string sym in line)
-                    Console.Write("{0}  ", sym);
-
+            Console.Write("Payline[{0,2}]: [  ", payLineNum);
+            foreach (var sym in line)
+                Console.Write("{0,12}  ", sym);
             Console.WriteLine("]  PAYS {0} credits.", payout);
-
-        } // End method PrintPayline
+        }
 
         // Only count 1 scatter per column
         private int GetScatterWin() // in credits 
@@ -389,11 +388,11 @@ namespace Lobstermania
 
             // Check each column (reel) in GameBoard for Scatters
             // Scatter wins only count 1 scatter per column
-            for (int c = 0; c < NUM_REELS; c++)
+            for (int c = 0; c < ReelCount; c++)
             {
-                for (int r = 0; r < GAMEBOARD_ROWS; r++)
+                for (int r = 0; r < GameBoardRowCount; r++)
                 {
-                    if (gameBoard[r, c] == "LT")
+                    if (gameBoard[r, c] == Symbol.Scatter)
                     {
                         count++;
                         break; // already 1 scatter in this column. Move on to next column
@@ -404,34 +403,33 @@ namespace Lobstermania
             int win = 0;
             switch (count)
             {
-                case 1:
-                case 2:
-                    win = 0;
-                    stats.scatterWinCredits += 0;
-                    stats.paybackCredits += 0;
-                    break;
-                case 3:
-                    win = 5;
-                    stats.scatterWinCredits += 5;
-                    stats.paybackCredits += 5;
-                    break;
-                case 4:
-                    win = 25;
-                    stats.scatterWinCredits += 25;
-                    stats.paybackCredits += 25;
-                    break;
-                case 5:
-                    win = 200;
-                    stats.scatterWinCredits += 200;
-                    stats.paybackCredits += 200;
-                    break;
-            } // end switch (count)
+            case 1:
+            case 2:
+                win = 0;
+                stats.scatterWinCredits += 0;
+                stats.paybackCredits += 0;
+                break;
+            case 3:
+                win = 5;
+                stats.scatterWinCredits += 5;
+                stats.paybackCredits += 5;
+                break;
+            case 4:
+                win = 25;
+                stats.scatterWinCredits += 25;
+                stats.paybackCredits += 25;
+                break;
+            case 5:
+                win = 200;
+                stats.scatterWinCredits += 200;
+                stats.paybackCredits += 200;
+                break;
+            }
 
             if (count > 2)
                 stats.scatterWinCount++;
 
             return win;
-
-        } // end GetScatterWin()
-    } // End class LM962
+        }
+    }
 }
