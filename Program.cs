@@ -96,7 +96,7 @@ namespace Lobstermania
 
         private static void BulkGameSpins(long numSpins, int numPayLines)
         {
-            LM962 game = new LM962()
+            LobsterMania game = new LobsterMania()
             {
                 activePaylines = numPayLines
             };
@@ -144,7 +144,7 @@ namespace Lobstermania
 
         private static void IndividualGames()
         {
-            LM962 game = new LM962
+            LobsterMania game = new LobsterMania
             {
                 printGameboard = true,
                 printPaylines = true

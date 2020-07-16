@@ -55,8 +55,8 @@ namespace Lobstermania
             if (!IsInitialized)
                 Initialize(); // Build the PrizeLookupTable
 
-            BouysPicked = LM962.rand.Next(2, 5); // 2, 3, or 4
-            PrizesPerBuoy = LM962.rand.Next(2, 4); // 2 or 3
+            BouysPicked = LobsterMania.rand.Next(2, 5); // 2, 3, or 4
+            PrizesPerBuoy = LobsterMania.rand.Next(2, 4); // 2 or 3
             int numPrizes = BouysPicked * PrizesPerBuoy;
 
             // Set all elements of the Prizes array to 0
@@ -66,7 +66,7 @@ namespace Lobstermania
             BonusWin = 0;
             for(int i=0; i<numPrizes; i++)
             {
-                int idx = LM962.rand.Next(322); // indexes between 0 and 321 inclusive
+                int idx = LobsterMania.rand.Next(322); // indexes between 0 and 321 inclusive
                 Prizes[i] = PrizeLookupTable[idx];
                 BonusWin += Prizes[i];
             }

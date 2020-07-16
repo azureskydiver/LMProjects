@@ -2,7 +2,7 @@
 
 namespace Lobstermania
 {
-    class LM962
+    class LobsterMania
     {
         const int NUM_REELS = 5;
         const int GAMEBOARD_ROWS = 3;
@@ -50,7 +50,7 @@ namespace Lobstermania
 
         public Stats stats = new Stats(); // Game statistics object
 
-        public LM962()
+        public LobsterMania()
         {
             // Build the reels
             BuildReels();
