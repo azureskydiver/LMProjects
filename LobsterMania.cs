@@ -300,40 +300,20 @@ namespace Lobstermania
 
         private void UpdateGameboard()
         {
-            int[] lineIdxs = new int[5]; // Random starting slots for each reel
-            for (int i = 0; i < ReelCount; i++)
-                lineIdxs[i] = rand.Next(reels[i].Length);
-
-            int i1, i2, i3;
-            int r = 0; // reel number 1-5 zero adjusted
-
-            foreach (int reelIdx in lineIdxs)
+            for(int i = 0; i < ReelCount; i++)
             {
                 // set i1,i2, i3 to consecutive slot numbers on this reel, wrap if needed
-                i1 = reelIdx;
+                int reelLength = reels[i].Length;
+                int i1 = rand.Next(reelLength);
+                int i2 = (i1 + 1) % reelLength;
+                int i3 = (i2 + 1) % reelLength;
 
-                // set i2, correct if past last slot in reel
-                if ((i1 + 1) == reels[r].Length)
-                    i2 = 0;
-                else
-                    i2 = i1 + 1;
-
-                // set i3, correct if past last slot in reel
-                if ((i2 + 1) == reels[r].Length)
-                    i3 = 0;
-                else
-                    i3 = i2 + 1;
-
-                // i1, i2, i3 are now set to consecutive slot indexes on this reel (r)
                 // Populate Random Gameboard
-                gameBoard[0, r] = reels[r][i1];
-                gameBoard[1, r] = reels[r][i2];
-                gameBoard[2, r] = reels[r][i3];
-
-                r++; // increment to next reel
-            } // end foreach
-
-        } // End method UpdateGameboard
+                gameBoard[0, i] = reels[i][i1];
+                gameBoard[1, i] = reels[i][i2];
+                gameBoard[2, i] = reels[i][i3];
+            }
+        }
 
         private void PrintGameboard()
         {
