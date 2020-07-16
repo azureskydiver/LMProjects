@@ -2,12 +2,10 @@
 
 namespace Lobstermania
 {
-    class ArrayShuffle
+    public static class RandomExtensions
     {
-        public static void Shuffle<T>(T[] items, Random rand)
+        public static void Shuffle<T>(this Random rand, T[] items)
         {
-            // For each spot in the array, pick
-            // a random item to swap into that spot.
             for (int i = 0; i < items.Length - 1; i++)
             {
                 int j = rand.Next(i, items.Length);

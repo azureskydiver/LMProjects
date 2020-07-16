@@ -57,7 +57,7 @@ namespace Lobstermania
 
             // Randomize the reels
             for(int i=0;i<NUM_REELS;i++) // randomize each of the 5 reels
-                ArrayShuffle.Shuffle(reels[i], rand);
+                rand.Shuffle(reels[i]);
 
         } // End constructor
 
