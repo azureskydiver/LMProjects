@@ -1,7 +1,9 @@
-﻿using System;
+﻿#define USE_PARALLEL
+using System;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Lobstermania
 {
@@ -108,48 +110,39 @@ namespace Lobstermania
                 activePaylines = numPayLines
             };
 
+#if USE_PARALLEL
+            TimeSpan elapsed = TimeSpan.Zero;
+            long totalProcessed = 0;
+            Parallel.For(0, numSpins,
+            new ParallelOptions() { MaxDegreeOfParallelism = 4 },
+            i =>
+            {
+                var stopwatch = new Stopwatch();
+                stopwatch.Start();
+                game.Spin();
+                stopwatch.Stop();
+                elapsed += stopwatch.Elapsed;
+
+                if (Interlocked.Increment(ref totalProcessed) % 1000000 == 0)
+                    Console.WriteLine($"{totalProcessed}/{numSpins}");
+            });
+#else
             var stopwatch = new Stopwatch();
-
-            Console.WriteLine("Progress Bar ({0:N0} spins)\n",numSpins);
-            Console.WriteLine("0%       100%");
-            Console.WriteLine("|--------|");
-
-
-            if (numSpins <= 10)
+            for (long i = 1; i <= numSpins; i++)
             {
-                Console.WriteLine("**********"); // 10 markers
-                for (long i = 1; i <= numSpins; i++)
-                {
-                    stopwatch.Start();
-                    game.Spin();
-                    stopwatch.Stop();
-                }
+                stopwatch.Start();
+                game.Spin();
+                stopwatch.Stop();
+                if ((i % 1000000 == 0))
+                    Console.WriteLine($"{i}/{numSpins}");
             }
-            else
-            {
-                int marks = 1; // Number of printed marks
-                long markerEvery = (long)Math.Ceiling((double)numSpins / (double)10); // print progression marker at every 1/10th of total spins.
-
-                for (long i = 1; i <= numSpins; i++)
-                {
-                    stopwatch.Start();
-                    game.Spin();
-                    stopwatch.Stop();
-                    if ((i % markerEvery == 0))
-                    {
-                        Console.Write("*");
-                        marks++;
-                    }
-                }
-
-                for (int i = marks; i <= 10; i++)
-                    Console.Write("*");
-            }
+            TimeSpan elapsed = stopwatch.Elapsed;
+#endif
 
             Console.WriteLine();
             game.stats.DisplaySessionStats(numPayLines);
 
-            Console.WriteLine("\nRun completed in {0:t}\n", stopwatch.Elapsed);
+            Console.WriteLine("\nRun completed in {0:t}\n", elapsed);
 
         } // End method BulkGameSpins
 

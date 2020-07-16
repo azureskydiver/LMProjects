@@ -87,8 +87,6 @@ namespace Lobstermania
             new Symbol[50]
         };
 
-        readonly Symbol[,] gameBoard = new Symbol[GameBoardRowCount, ReelCount];
-        readonly Symbol[][] payLines = new Symbol[PayLineCountMax][];
         public int activePaylines = PayLineCountMax;
 
         // Print flags
@@ -141,9 +139,9 @@ namespace Lobstermania
             stats.spins++;
             if (printReels)
                 PrintReels();
-            UpdateGameboard();
+            var gameBoard = GetGameboard();
             if (printGameboard)
-                PrintGameboard();
+                PrintGameboard(gameBoard);
 
             if (printPaylines)
             {
@@ -152,11 +150,8 @@ namespace Lobstermania
             }
 
             int payLineCount = 0;
-            foreach(var payLine in GetPayLines())
+            foreach(var payLine in GetPayLines(gameBoard).Take(activePaylines))
             {
-                if (payLineCount++ >= activePaylines)
-                    break;
-
                 int linePayout = GetLinePayout(payLine); // will include any bonus win
                 if (linePayout > 0)
                 {
@@ -165,11 +160,11 @@ namespace Lobstermania
                     stats.paybackCredits += linePayout;
 
                     if (printPaylines)
-                        PrintPayline(payLineCount, payLine, linePayout);
+                        PrintPayline(payLineCount++, payLine, linePayout);
                 }
             }
 
-            int scatterWin = GetScatterWin();
+            int scatterWin = GetScatterWin(gameBoard);
             if (scatterWin > 0)
             {
                 // stats.paybackCredits are updated in GetScatterWin()
@@ -305,8 +300,9 @@ namespace Lobstermania
             return lineWin;
         }
 
-        private void UpdateGameboard()
+        Symbol [,] GetGameboard()
         {
+            var gameBoard = new Symbol[3, 5];
             for(int i = 0; i < ReelCount; i++)
             {
                 // set i1,i2, i3 to consecutive slot numbers on this reel, wrap if needed
@@ -320,9 +316,10 @@ namespace Lobstermania
                 gameBoard[1, i] = reels[i][i2];
                 gameBoard[2, i] = reels[i][i3];
             }
+            return gameBoard;
         }
 
-        private void PrintGameboard()
+        private void PrintGameboard(Symbol [,] gameBoard)
         {
             Console.WriteLine("GAMEBOARD:");
             Console.WriteLine("------------------");
@@ -359,7 +356,7 @@ namespace Lobstermania
             new [] { 1, 1, 0, 1, 2 },
         };
 
-        IEnumerable<Symbol[]> GetPayLines()
+        IEnumerable<Symbol[]> GetPayLines(Symbol[,] gameBoard)
         {
             foreach(var row in PayLineRows)
             {
@@ -383,7 +380,7 @@ namespace Lobstermania
         }
 
         // Only count 1 scatter per column
-        private int GetScatterWin() // in credits 
+        private int GetScatterWin(Symbol[,] gameBoard) // in credits 
         {
             int count = 0;
 
