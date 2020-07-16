@@ -73,7 +73,7 @@ namespace Lobstermania
             { 10000, 1000, 500, 500, 500, 250, 200, 200, 150, 0, 200 }
         };
 
-        public static readonly Random rand = new Random();
+        static readonly Random rand = new Random();
 
         readonly Symbol[][] reels = new Symbol[][]
         {
@@ -191,7 +191,7 @@ namespace Lobstermania
 
                     if (count == 3)
                     {
-                        bonusWin = Bonus.GetPrizes();
+                        bonusWin = Bonus.GetPrizes(rand);
                         stats.bonusWinCount++;
                         stats.bonusWinCredits += bonusWin;
                         stats.igBonusWin += bonusWin;

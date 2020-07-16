@@ -4,22 +4,10 @@ namespace Lobstermania
 {
     static class Bonus
     {
-        // Constants
-        private const int NUM_PRIZE_SLOTS = 322;
-        private const int MAX_PRIZES = 12; // 4 buoys picked x 3 prizes per buoy
-        
-        // Fields
-        private readonly static int[] PrizeLookupTable = new int[NUM_PRIZE_SLOTS];
-        private static int BouysPicked = 0; // will be either 2, 3, or 4
-        private static int PrizesPerBuoy = 0; // will be either 2 or 3
-        private readonly static int[] Prizes = new int[MAX_PRIZES]; // each individual prize amount, array will be right sized
-        private static int BonusWin = 0;
-        private static bool IsInitialized = false;
+        const int PrizeSlotCount = 322;
+        readonly static int[] PrizeLookupTable = new int[PrizeSlotCount];
 
-        // Properties
-
-        // Methods
-        private static void Initialize() 
+        static Bonus()
         {
             // Set each PrizeLookupTable element to prize value in credits
             for (int i = 0; i <= 9; i++) PrizeLookupTable[i] = 10;
@@ -46,35 +34,17 @@ namespace Lobstermania
             for (int i = 299; i <= 308; i++) PrizeLookupTable[i] = 100;
             for (int i = 309; i <= 316; i++) PrizeLookupTable[i] = 150;
             for (int i = 317; i <= 321; i++) PrizeLookupTable[i] = 250;
-
-            IsInitialized = true;
         }
 
-        public static int GetPrizes()
+        public static int GetPrizes(Random rand)
         {
-            if (!IsInitialized)
-                Initialize(); // Build the PrizeLookupTable
-
-            BouysPicked = LobsterMania.rand.Next(2, 5); // 2, 3, or 4
-            PrizesPerBuoy = LobsterMania.rand.Next(2, 4); // 2 or 3
-            int numPrizes = BouysPicked * PrizesPerBuoy;
-
-            // Set all elements of the Prizes array to 0
-            Array.Clear(Prizes, 0, MAX_PRIZES); 
-
-            // Get each prize and save it to the Prizes array, add each prize to BonusWin
-            BonusWin = 0;
-            for(int i=0; i<numPrizes; i++)
-            {
-                int idx = LobsterMania.rand.Next(322); // indexes between 0 and 321 inclusive
-                Prizes[i] = PrizeLookupTable[idx];
-                BonusWin += Prizes[i];
-            }
-
-            return BonusWin;
-
-        } // End method GetPrizes
-
-    } // End class Bonus
-
-} // End namespace Lobstermania
+            int bouysPicked = rand.Next(2, 5);
+            int prizesPerBuoy = rand.Next(2, 4);
+            int numPrizes = bouysPicked * prizesPerBuoy;
+            int bonusWin = 0;
+            for(int i = 0; i < numPrizes; i++)
+                bonusWin += PrizeLookupTable[rand.Next(PrizeSlotCount)];
+            return bonusWin;
+        }
+    }
+}
