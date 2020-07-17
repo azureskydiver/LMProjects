@@ -29,7 +29,7 @@ namespace Lobstermania
         //
         // Reels 1, 2, and 3 have all 11 symbols, while Reels 4 and 5 do not have the Bonus symbol
         //
-        readonly Symbol[] Reel123Symbols =
+        static readonly Symbol[] Reel123Symbols =
         {
             Symbol.Wild,
             Symbol.Lobstermania,
@@ -44,7 +44,7 @@ namespace Lobstermania
             Symbol.Scatter,
         };
 
-        readonly Symbol[] Reel45Symbols =
+        static readonly Symbol[] Reel45Symbols =
         {
             Symbol.Wild,
             Symbol.Lobstermania,
@@ -58,7 +58,7 @@ namespace Lobstermania
             Symbol.Scatter,
         };
 
-        readonly int[][] SymbolCounts = new int[][]
+        static readonly int[][] SymbolCounts = new int[][]
         {
             new int[] { 2, 4, 4, 6, 5, 6, 6, 5, 5, 2, 2 },
             new int[] { 2, 4, 4, 4, 4, 4, 6, 6, 5, 5, 2 },
@@ -67,9 +67,9 @@ namespace Lobstermania
             new int[] { 2, 4, 5, 4, 7, 7, 6, 6, 7, 2 }
         };
 
-        readonly int[,] Payouts =
+        static readonly int[,] Payouts =
         {
-            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             { 100, 40, 25, 25, 10, 10, 5, 5, 5, 331, 5 },
             { 500, 200, 100, 100, 50, 50, 30, 30, 30, 0,25 },
@@ -88,7 +88,6 @@ namespace Lobstermania
         };
 
         readonly Symbol[,] gameBoard = new Symbol[GameBoardRowCount, ReelCount];
-        readonly Symbol[][] payLines = new Symbol[PayLineCountMax][];
         public int activePaylines = PayLineCountMax;
 
         // Print flags
@@ -152,11 +151,9 @@ namespace Lobstermania
             }
 
             int payLineCount = 0;
-            foreach(var payLine in GetPayLines())
+            foreach(var payLine in GetPayLines().Take(activePaylines))
             {
-                if (payLineCount++ >= activePaylines)
-                    break;
-
+                payLineCount++;
                 int linePayout = GetLinePayout(payLine); // will include any bonus win
                 if (linePayout > 0)
                 {
@@ -385,10 +382,9 @@ namespace Lobstermania
         // Only count 1 scatter per column
         private int GetScatterWin() // in credits 
         {
-            int count = 0;
-
             // Check each column (reel) in GameBoard for Scatters
             // Scatter wins only count 1 scatter per column
+            int count = 0;
             for (int c = 0; c < ReelCount; c++)
             {
                 for (int r = 0; r < GameBoardRowCount; r++)
@@ -404,30 +400,20 @@ namespace Lobstermania
             int win = 0;
             switch (count)
             {
-            case 1:
-            case 2:
-                win = 0;
-                stats.scatterWinCredits += 0;
-                stats.paybackCredits += 0;
-                break;
             case 3:
                 win = 5;
-                stats.scatterWinCredits += 5;
-                stats.paybackCredits += 5;
                 break;
             case 4:
                 win = 25;
-                stats.scatterWinCredits += 25;
-                stats.paybackCredits += 25;
                 break;
             case 5:
                 win = 200;
-                stats.scatterWinCredits += 200;
-                stats.paybackCredits += 200;
                 break;
             }
+            stats.scatterWinCredits += win;
+            stats.paybackCredits += win;
 
-            if (count > 2)
+            if (win > 0)
                 stats.scatterWinCount++;
 
             return win;
