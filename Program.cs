@@ -70,7 +70,7 @@ namespace Lobstermania
         {
             if (args.Length == 1 && string.Compare(args[0], "-perf", true) == 0)
             {
-                BulkGameSpins(10000000, 15);
+                BulkGameSpins(10000000, 1);
                 return;
             }
 

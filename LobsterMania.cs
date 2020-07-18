@@ -105,7 +105,7 @@ namespace Lobstermania
                 rand.Shuffle(reels[i]);
         }
 
-        private void BuildReels()
+        void BuildReels()
         {
             for (int i = 0; i < 3; i++)
             {
@@ -124,7 +124,7 @@ namespace Lobstermania
             }
         }
 
-        private void PrintReels()
+        void PrintReels()
         {
             for(int num=0; num < ReelCount; num++)
             {
@@ -166,143 +166,165 @@ namespace Lobstermania
                 }
             }
 
-            int scatterWin = GetScatterWin();
+            int scatterWin = GetScatterWinCredits();
             if (scatterWin > 0)
             {
-                // stats.paybackCredits are updated in GetScatterWin()
+                stats.scatterWinCount++;
+                stats.scatterWinCredits += scatterWin;
+                stats.paybackCredits += scatterWin;
                 stats.hitCount++;
+                //$ REVIEW: Really?
                 stats.igScatterWin = scatterWin; // only 1 scatter win allowed per game
                 stats.igWin += scatterWin; // add to total game win
             }
         }
 
-        private int GetLinePayout(Symbol[] line)
+        int GetBonusCount(in Symbol [] line, out int bonusWin)
         {
-            int count = 1; // count of consecutive matching symbols, left to right 
-            var sym = line[0];
-            int bonusWin = 0;
+            int count = 1;
+            bonusWin = 0;
 
-            switch (sym)
+            for (int i = 1; i < 3; i++)
             {
-                case Symbol.Bonus:
-                    for (int i = 1; i < 3; i++)
-                    {
-                        if (line[i] == Symbol.Bonus)
-                            count++;
-                        else
-                            break;
-                    }
+                if (line[i] == Symbol.Bonus)
+                    count++;
+                else
+                    break;
+            }
 
-                    if (count == 3)
+            if (count == 3)
+            {
+                bonusWin = Bonus.GetPrizes(rand);
+                stats.bonusWinCount++;
+                stats.bonusWinCredits += bonusWin;
+                stats.igBonusWin += bonusWin;
+            }
+
+            return count;
+        }
+
+        int GetWildCount(in Symbol [] line, ref Symbol sym)
+        {
+            var altSym = Symbol.Wild;
+            int count = 1;
+
+            for (int i = 1; i < ReelCount; i++)
+            {
+                if ((line[i] == sym) || (line[i] == altSym))
+                {
+                    count++;
+                }
+                else
+                {
+                    if (line[i] != Symbol.Bonus &&
+                        line[i] != Symbol.Scatter &&
+                        altSym == Symbol.Wild)
                     {
-                        bonusWin = Bonus.GetPrizes(rand);
-                        stats.bonusWinCount++;
-                        stats.bonusWinCredits += bonusWin;
-                        stats.igBonusWin += bonusWin;
+                        altSym = line[i];
+                        count++;
                     }
                     else
-                        bonusWin = 0;
-
-                    break;
-
-                case Symbol.Scatter:
-                    count = 1; // Scatter handled at gameboard level
-                    break;
-
-                case Symbol.Wild:
-                    var altSym = Symbol.Wild;
-
-                    for (int i = 1; i < ReelCount; i++)
-                        if ((line[i] == sym) || (line[i] == altSym))
-                            count++;
-                        else
-                        {
-                            if (line[i] != Symbol.Bonus &&
-                                line[i] != Symbol.Scatter &&
-                                altSym == Symbol.Wild)
-                            {
-                                altSym = line[i];
-                                count++;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-
-                    sym = altSym; // count and sym are now set correctly 
-
-                    // ANOMOLY FIX
-                    // 3 wilds pay more than 4 of anything but lobstermania
-                    // 4 wilds pay more than 5 of anything but lobstermania
-                    // Take greatest win possible
-
-                    // Leading 4 wilds
-                    if ((line[1] == Symbol.Wild) &&
-                        (line[2] == Symbol.Wild) &&
-                        (line[3] == Symbol.Wild))
                     {
-                        if (line[4] == Symbol.Lobstermania)
-                        {
-                            sym = Symbol.Lobstermania;
-                            count = 5;
-                        }
-                        else
-                        if (line[4] != Symbol.Wild)
-                        {
-                            sym = Symbol.Wild;
-                            count = 4;
-                        }
-                    }
-
-                    // Leading 3 wilds
-                    if ((line[1] == Symbol.Wild) &&
-                        (line[2] == Symbol.Wild) &&
-                        (line[3] == Symbol.Lobstermania) &&
-                        (line[4] == Symbol.Wild) &&
-                        (line[4] != Symbol.Lobstermania))
-                    {
-                        sym = Symbol.Lobstermania;
-                        count = 4;
                         break;
                     }
-                    if ((line[1] == Symbol.Wild) &&
-                        (line[2] == Symbol.Wild) &&
-                        (line[3] != Symbol.Lobstermania) &&
-                        (line[3] != Symbol.Wild) &&
-                        (line[4] != line[3]))
-                    {
-                        sym = Symbol.Wild;
-                        count = 3;
-                    }
-                    break;
+                }
+            }
 
-                default: // Handle all other 1st symbols not handled in cases above
-                    sym = line[0];
-                    for (int i = 1; i < ReelCount; i++)
-                    {
-                        if ((line[i] == sym) || (line[i] == Symbol.Wild))
-                            count++;
-                        else
-                            break;
-                    }
-                break;
+            sym = altSym; // count and sym are now set correctly 
+
+            // ANOMOLY FIX
+            // 3 wilds pay more than 4 of anything but lobstermania
+            // 4 wilds pay more than 5 of anything but lobstermania
+            // Take greatest win possible
+
+            // Leading 4 wilds
+            if ((line[1] == Symbol.Wild) &&
+                (line[2] == Symbol.Wild) &&
+                (line[3] == Symbol.Wild))
+            {
+                if (line[4] == Symbol.Lobstermania)
+                {
+                    sym = Symbol.Lobstermania;
+                    count = 5;
+                }
+                else
+                if (line[4] != Symbol.Wild)
+                {
+                    sym = Symbol.Wild;
+                    count = 4;
+                }
+            }
+
+            // Leading 3 wilds
+            if ((line[1] == Symbol.Wild) &&
+                (line[2] == Symbol.Wild) &&
+                (line[3] == Symbol.Lobstermania) &&
+                (line[4] == Symbol.Wild) &&
+                (line[4] != Symbol.Lobstermania))
+            {
+                sym = Symbol.Lobstermania;
+                count = 4;
+                return count;
+            }
+            if ((line[1] == Symbol.Wild) &&
+                (line[2] == Symbol.Wild) &&
+                (line[3] != Symbol.Lobstermania) &&
+                (line[3] != Symbol.Wild) &&
+                (line[4] != line[3]))
+            {
+                sym = Symbol.Wild;
+                count = 3;
             }
 
             if ((sym == Symbol.Wild) && (count == 5))
                 stats.numJackpots++;
 
-            // count variable now set for number of consecutive line[0] symbols (1 based)
-            count--; // adjust for zero based indexing
-
-            if (bonusWin > 0)
-                return bonusWin;
-
-            int lineWin = Payouts[count, (int)sym];
-            return lineWin;
+            return count;
         }
 
-        private void UpdateGameboard()
+        int GetMiscCount(in Symbol [] line)
+        {
+            var sym = line[0];
+            int count = 1;
+
+            for (int i = 1; i < ReelCount; i++)
+            {
+                if ((line[i] == sym) || (line[i] == Symbol.Wild))
+                    count++;
+                else
+                    break;
+            }
+
+            return count;
+        }
+
+        int GetLinePayout(in Symbol [] line)
+        {
+            int count;
+            var sym = line[0];
+            switch (sym)
+            {
+            case Symbol.Bonus:
+                count = GetBonusCount(line, out int bonusWin);
+                return bonusWin > 0 ? bonusWin : Payouts[count - 1, (int)sym];
+
+            case Symbol.Scatter:
+                // Scatter handled at gameboard level
+                return 0;
+
+            case Symbol.Wild:
+                count = GetWildCount(line, ref sym);
+                break;
+
+            default:
+                count = GetMiscCount(line);
+                break;
+            }
+
+            return Payouts[count - 1, (int)sym];
+        }
+
+        void UpdateGameboard()
         {
             for(int i = 0; i < ReelCount; i++)
             {
@@ -319,7 +341,7 @@ namespace Lobstermania
             }
         }
 
-        private void PrintGameboard()
+        void PrintGameboard()
         {
             Console.WriteLine("GAMEBOARD:");
             Console.WriteLine("------------------");
@@ -371,7 +393,7 @@ namespace Lobstermania
             }
         }
 
-        private void PrintPayline(int payLineNum, Symbol[] line, int payout)
+        void PrintPayline(int payLineNum, in Symbol[] line, int payout)
         { 
             Console.Write("Payline[{0,2}]: [  ", payLineNum);
             foreach (var sym in line)
@@ -379,8 +401,7 @@ namespace Lobstermania
             Console.WriteLine("]  PAYS {0} credits.", payout);
         }
 
-        // Only count 1 scatter per column
-        private int GetScatterWin() // in credits 
+        int CountScatterColumns()
         {
             // Check each column (reel) in GameBoard for Scatters
             // Scatter wins only count 1 scatter per column
@@ -392,13 +413,17 @@ namespace Lobstermania
                     if (gameBoard[r, c] == Symbol.Scatter)
                     {
                         count++;
-                        break; // already 1 scatter in this column. Move on to next column
+                        break;
                     }
                 }
             }
+            return count;
+        }
 
+        int GetScatterWinCredits()
+        {
             int win = 0;
-            switch (count)
+            switch (CountScatterColumns())
             {
             case 3:
                 win = 5;
@@ -410,12 +435,6 @@ namespace Lobstermania
                 win = 200;
                 break;
             }
-            stats.scatterWinCredits += win;
-            stats.paybackCredits += win;
-
-            if (win > 0)
-                stats.scatterWinCount++;
-
             return win;
         }
     }
